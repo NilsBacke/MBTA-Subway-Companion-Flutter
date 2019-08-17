@@ -50,7 +50,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
 
     if (viewModel.allStopsErrorMessage.isNotEmpty) {
-      showErrorDialog(context, viewModel.allStopsErrorMessage);
+      Future.delayed(Duration.zero,
+          () => showErrorDialog(context, viewModel.allStopsErrorMessage));
       return errorTextWidget(context, text: viewModel.allStopsErrorMessage);
     }
 

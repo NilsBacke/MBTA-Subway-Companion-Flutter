@@ -52,7 +52,10 @@ class _CommuteScreenState extends State<CommuteScreen> {
                 }
 
                 if (viewModel.commuteErrorMessage.length != 0) {
-                  showErrorDialog(context, viewModel.commuteErrorMessage);
+                  Future.delayed(
+                      Duration.zero,
+                      () => showErrorDialog(
+                          context, viewModel.commuteErrorMessage));
                   return commuteCardWithText(viewModel.commuteErrorMessage);
                 }
 

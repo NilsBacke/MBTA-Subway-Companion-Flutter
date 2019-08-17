@@ -1,3 +1,4 @@
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mbta_companion/src/models/vehicle.dart';
 
 class VehiclesFetchSuccess {
@@ -12,4 +13,10 @@ class VehiclesFetchFailure {
   final String vehiclesErrorMessage;
 
   VehiclesFetchFailure(this.vehiclesErrorMessage);
+}
+
+class BitmapFetchSuccess {
+  final BitmapDescriptor bitmap;
+
+  BitmapFetchSuccess(this.bitmap);
 }

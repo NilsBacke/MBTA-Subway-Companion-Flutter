@@ -7,7 +7,6 @@ import 'package:mbta_companion/src/constants/string_constants.dart';
 import 'package:mbta_companion/src/models/stop.dart';
 import 'package:mbta_companion/src/models/vehicle.dart';
 import 'package:mbta_companion/src/services/location_service.dart';
-import 'package:mbta_companion/src/services/mbta_service.dart';
 import 'package:mbta_companion/src/services/permission_service.dart';
 import 'package:mbta_companion/src/state/operations/allStopsOperations.dart';
 import 'package:mbta_companion/src/state/operations/locationOperations.dart';
@@ -16,7 +15,6 @@ import 'package:mbta_companion/src/state/state.dart';
 import 'package:mbta_companion/src/utils/show_error_dialog.dart';
 import 'package:mbta_companion/src/utils/stops_list_helpers.dart';
 import 'package:mbta_companion/src/widgets/error_text_widget.dart';
-import 'package:mbta_companion/src/widgets/stop_card.dart';
 import 'package:mbta_companion/src/widgets/stops_list_view.dart';
 import 'package:redux/redux.dart';
 
@@ -46,28 +44,24 @@ class _NearbyScreenState extends State<NearbyScreen> {
     }
 
     if (viewModel.allStopsErrorMessage.isNotEmpty) {
-      showErrorDialog(context, viewModel.allStopsErrorMessage);
+      Future.delayed(Duration.zero,
+          () => showErrorDialog(context, viewModel.allStopsErrorMessage));
       return errorTextWidget(context, text: viewModel.allStopsErrorMessage);
     }
 
     if (viewModel.vehiclesErrorMessage.isNotEmpty) {
-      showErrorDialog(context, viewModel.vehiclesErrorMessage);
+      Future.delayed(Duration.zero,
+          () => showErrorDialog(context, viewModel.vehiclesErrorMessage));
       return errorTextWidget(context, text: viewModel.vehiclesErrorMessage);
     }
 
-    // loading
-    if (viewModel.isAllStopsLoading || viewModel.isLocationLoading) {
+    if (viewModel.isAllStopsLoading || viewModel.allStops.length == 0) {
       return StopsLoadingIndicator();
     }
 
     return Column(
       children: <Widget>[
-        Expanded(
-          child: topHalf(viewModel.markers),
-        ),
-        // Expanded(
-        //   child: bottomHalf(viewModel.allStops, viewModel.location),
-        // ),
+        Expanded(child: topHalf(viewModel)),
       ],
     );
   }
@@ -76,78 +70,83 @@ class _NearbyScreenState extends State<NearbyScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: StoreConnector<AppState, _NearbyScreenViewModel>(
-          converter: (store) => _NearbyScreenViewModel.create(store),
-          builder: (context, _NearbyScreenViewModel viewModel) {
-            final bodyWidget = getBodyWidget(viewModel);
+        rebuildOnChange: true,
+        converter: (store) => _NearbyScreenViewModel.create(store),
+        builder: (context, _NearbyScreenViewModel viewModel) {
+          final bodyWidget = getBodyWidget(viewModel);
 
-            if (viewModel.location == null &&
-                !viewModel.isLocationLoading &&
-                viewModel.locationErrorStatus == null) {
-              viewModel.getLocation();
-            }
-
-            if (viewModel.allStops != null &&
-                viewModel.allStops.length == 0 &&
-                !viewModel.isAllStopsLoading &&
-                viewModel.allStopsErrorMessage.isEmpty &&
-                viewModel.location != null) {
-              viewModel.getAllStops(viewModel.location);
-            }
-
-            if (viewModel.vehicles != null &&
-                viewModel.vehicles.length == 0 &&
-                !viewModel.isVehiclesLoading &&
-                viewModel.vehiclesErrorMessage.isEmpty) {
-              viewModel.getVehicles();
-            }
-            return bodyWidget;
-          }),
-    );
-  }
-
-  Container topHalf(List<Marker> markers) {
-    return Container(
-      child: GoogleMap(
-        initialCameraPosition: _kGooglePlex,
-        myLocationEnabled: true,
-        onMapCreated: (mapscontroller) async {
-          if (!controller.isCompleted) {
-            controller.complete(mapscontroller);
+          if (viewModel.bitmap == null) {
+            viewModel.getBitmap();
           }
-          final location = await LocationService.currentLocation;
-          final GoogleMapController c = await controller.future;
-          c.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-            target: LatLng(location.latitude, location.longitude),
-            zoom: 15,
-          )));
+
+          if (viewModel.location == null &&
+              !viewModel.isLocationLoading &&
+              viewModel.locationErrorStatus == null) {
+            viewModel.getLocation();
+          }
+
+          if (viewModel.allStops != null &&
+              viewModel.allStops.length == 0 &&
+              !viewModel.isAllStopsLoading &&
+              viewModel.allStopsErrorMessage.isEmpty &&
+              viewModel.location != null) {
+            viewModel.getAllStops(viewModel.location);
+          }
+
+          if (viewModel.vehicles != null &&
+              viewModel.vehicles.length == 0 &&
+              !viewModel.isVehiclesLoading &&
+              viewModel.vehiclesErrorMessage.isEmpty) {
+            viewModel.getVehicles(true);
+          }
+          return bodyWidget;
         },
-        markers: markers.toSet(),
       ),
     );
   }
 
-  Widget bottomHalf(List<Stop> stops, LocationData locationData) {
-    if (stops.length == 0) {
-      return Container(
-        child: Center(
-          child: Text(
-            'No stops within ${MBTAService.rangeInMiles} miles',
-            style: Theme.of(context).textTheme.body2,
-            textAlign: TextAlign.center,
+  Container topHalf(_NearbyScreenViewModel viewModel) {
+    final markers = viewModel.markers;
+    final location = viewModel.location;
+    return Container(
+      child: Stack(
+        children: <Widget>[
+          viewModel.isVehiclesLoading
+              ? Center(
+                  child: CircularProgressIndicator(),
+                )
+              : Container(),
+          GoogleMap(
+            initialCameraPosition: _kGooglePlex,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            onMapCreated: (mapscontroller) async {
+              if (!controller.isCompleted) {
+                controller.complete(mapscontroller);
+              }
+
+              final GoogleMapController c = await controller.future;
+              c.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+                target: LatLng(location.latitude, location.longitude),
+                zoom: 15,
+              )));
+            },
+            markers: markers.toSet(),
           ),
-        ),
-      );
-    }
-    return ListView.builder(
-      itemCount: stops.length,
-      itemBuilder: (context, int index) {
-        final stop = stops[index];
-        return StopCard(
-          location: locationData,
-          stop: stop,
-          includeDistance: true,
-        );
-      },
+          Positioned(
+            bottom: 75.0,
+            right: 12.0,
+            child: FloatingActionButton(
+              child: Icon(
+                Icons.refresh,
+                color: Colors.grey[800],
+              ),
+              onPressed: () => viewModel.getVehicles(true),
+              elevation: 2.0,
+            ),
+          )
+        ],
+      ),
     );
   }
 }
@@ -163,10 +162,12 @@ class _NearbyScreenViewModel {
   final bool isVehiclesLoading;
   final String vehiclesErrorMessage;
   final List<Marker> markers;
+  final BitmapDescriptor bitmap;
 
   final Function() getLocation;
   final Function(LocationData) getAllStops;
-  final Function() getVehicles;
+  final Function(bool) getVehicles;
+  final Function() getBitmap;
 
   _NearbyScreenViewModel(
       {this.location,
@@ -178,10 +179,12 @@ class _NearbyScreenViewModel {
       this.vehicles,
       this.isVehiclesLoading,
       this.vehiclesErrorMessage,
+      this.bitmap,
       this.getLocation,
       this.getAllStops,
       this.getVehicles,
-      this.markers});
+      this.markers,
+      this.getBitmap});
 
   factory _NearbyScreenViewModel.create(Store<AppState> store) {
     final state = store.state;
@@ -208,6 +211,26 @@ class _NearbyScreenViewModel {
       }
     }
 
+    if (state.vehiclesState.vehicles != null &&
+        state.vehiclesState.vehicles.length != 0 &&
+        state.vehiclesState.bitmap != null) {
+      for (final Vehicle vehicle in state.vehiclesState.vehicles) {
+        final icon = state.vehiclesState.bitmap;
+        var marker = Marker(
+          markerId: MarkerId(vehicle.id),
+          position: LatLng(vehicle.latitude, vehicle.longitude),
+          icon: icon,
+          infoWindow: InfoWindow(
+              title: "Approaching " + vehicle.nextStop,
+              snippet: vehicle.lineName +
+                  " - Last Updated: " +
+                  vehicle.updatedAtTime),
+          rotation: vehicle.bearing.toDouble(),
+        );
+        markers.add(marker);
+      }
+    }
+
     return _NearbyScreenViewModel(
         location: state.locationState.locationData,
         isLocationLoading: state.locationState.isLocationLoading,
@@ -221,7 +244,10 @@ class _NearbyScreenViewModel {
         getLocation: () => store.dispatch(fetchLocation()),
         getAllStops: (LocationData locationData) =>
             store.dispatch(fetchAllStops(locationData)),
-        getVehicles: () => store.dispatch(fetchVehicles()),
-        markers: markers);
+        getVehicles: (bool activatePending) =>
+            store.dispatch(fetchVehicles(activatePending)),
+        markers: markers,
+        bitmap: state.vehiclesState.bitmap,
+        getBitmap: () => store.dispatch(fetchBitmap()));
   }
 }

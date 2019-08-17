@@ -1,3 +1,4 @@
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:mbta_companion/src/models/alert.dart';
 import 'package:mbta_companion/src/models/commute.dart';
@@ -156,15 +157,16 @@ class VehiclesState {
   final List<Vehicle> vehicles;
   final bool isVehiclesLoading;
   final String vehiclesErrorMessage;
+  final BitmapDescriptor bitmap;
 
-  VehiclesState(
-      this.vehicles, this.isVehiclesLoading, this.vehiclesErrorMessage);
+  VehiclesState(this.vehicles, this.isVehiclesLoading,
+      this.vehiclesErrorMessage, this.bitmap);
 
   factory VehiclesState.initial() =>
-      VehiclesState(List.unmodifiable([]), false, '');
+      VehiclesState(List.unmodifiable([]), false, '', null);
 
   @override
   String toString() {
-    return "{ vehicles: ${this.vehicles.toString()}, isVehiclesLoading: ${this.isVehiclesLoading}, vehiclesErrorMessage: ${this.vehiclesErrorMessage} }";
+    return "{ vehicles: ${this.vehicles.toString()}, isVehiclesLoading: ${this.isVehiclesLoading}, vehiclesErrorMessage: ${this.vehiclesErrorMessage}, bitmap: ${this.bitmap} }";
   }
 }

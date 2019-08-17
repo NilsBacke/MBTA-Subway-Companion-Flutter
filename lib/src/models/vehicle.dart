@@ -7,6 +7,23 @@ class Vehicle {
   String updatedAt;
   String lineName;
   String directionDestination;
+  String nextStop;
+
+  String get updatedAtTime {
+    if (this.updatedAt != null) {
+      final date = DateTime.parse(this.updatedAt);
+      final diff = DateTime.now().difference(date);
+      if (diff.inSeconds <= 60) {
+        return diff.inSeconds.toString() + " seconds ago";
+      }
+      var pluralString = '';
+      if (diff.inMinutes == 1) {
+        pluralString = 's';
+      }
+      return diff.inMinutes.toString() + " minute$pluralString ago";
+    }
+    return "N/A";
+  }
 
   static const idKey = "id";
   static const bearingKey = "bearing";
@@ -16,9 +33,10 @@ class Vehicle {
   static const lineNameKey = "lineName";
   static const updatedAtKey = "updatedAt";
   static const directionDestinationKey = "directionDestination";
+  static const nextStopKey = "nextStop";
 
   Vehicle(this.id, this.bearing, this.latitude, this.longitude, this.speed,
-      this.updatedAt, this.lineName, this.directionDestination);
+      this.updatedAt, this.lineName, this.directionDestination, this.nextStop);
 
   Vehicle.fromJson(Map<String, dynamic> parsedJson) {
     this.id = parsedJson[idKey];
@@ -29,5 +47,6 @@ class Vehicle {
     this.speed = parsedJson[speedKey];
     this.lineName = parsedJson[lineNameKey];
     this.updatedAt = parsedJson[updatedAtKey];
+    this.nextStop = parsedJson[nextStopKey];
   }
 }

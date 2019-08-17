@@ -45,7 +45,8 @@ class _SavedScreenState extends State<SavedScreen> {
         if (viewModel.isSavedStopsLoading) {
           bodyWidget = StopsLoadingIndicator();
         } else if (viewModel.savedStopsError.isNotEmpty) {
-          showErrorDialog(context, viewModel.savedStopsError);
+          Future.delayed(Duration.zero,
+              () => showErrorDialog(context, viewModel.savedStopsError));
           bodyWidget = errorSavedList(context, viewModel.savedStopsError);
         } else if (viewModel.savedStops == null ||
             viewModel.savedStops.length == 0) {
