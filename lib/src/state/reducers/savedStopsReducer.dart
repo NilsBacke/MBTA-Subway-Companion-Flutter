@@ -79,7 +79,7 @@ SavedStopsState savedStopsRemoveFailure(
 }
 
 SavedStopsState clearSavedStopsError(
-    SavedStopsState savedStopsState, ClearSavedStopsError action) {
+    SavedStopsState savedStopsState, SavedStopsClearError action) {
   return SavedStopsState(List.unmodifiable(savedStopsState.savedStops),
       savedStopsState.isSavedStopsLoading, '');
 }

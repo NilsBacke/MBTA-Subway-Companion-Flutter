@@ -14,3 +14,5 @@ class LocationFetchFailure {
 
   LocationFetchFailure(this.locationErrorStatus);
 }
+
+class LocationClearError {}

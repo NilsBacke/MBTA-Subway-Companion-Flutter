@@ -15,6 +15,8 @@ class VehiclesFetchFailure {
   VehiclesFetchFailure(this.vehiclesErrorMessage);
 }
 
+class VehiclesClearError {}
+
 class BitmapFetchSuccess {
   final BitmapDescriptor bitmap;
 

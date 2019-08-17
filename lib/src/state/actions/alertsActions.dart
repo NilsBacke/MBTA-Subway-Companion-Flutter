@@ -13,3 +13,5 @@ class AlertsFetchFailure {
 
   AlertsFetchFailure(this.alertErrorMessage);
 }
+
+class AlertsClearError {}

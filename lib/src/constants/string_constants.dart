@@ -16,3 +16,4 @@ const associatedStopErrorMessage =
 const vehiclesErrorMessage = 'Error getting locations of all trains';
 const branchWarningMessage =
     "Unfortunately the MBTA does not provide specific branch arrival times for this stop";
+const saveCommuteError = "Error saving commute. Please try again";

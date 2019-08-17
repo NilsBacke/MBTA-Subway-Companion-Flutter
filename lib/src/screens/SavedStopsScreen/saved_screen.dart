@@ -115,6 +115,6 @@ class _SavedViewModel {
         getSavedStops: () => store.dispatch(fetchSavedStops()),
         addStop: (Stop stop) => store.dispatch(addSavedStop(stop)),
         removeStop: (Stop stop) => store.dispatch(removeSavedStop(stop)),
-        clearError: () => store.dispatch(ClearSavedStopsError()));
+        clearError: () => store.dispatch(SavedStopsClearError()));
   }
 }

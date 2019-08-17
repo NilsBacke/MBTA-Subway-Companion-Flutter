@@ -13,3 +13,5 @@ class NearestStopFetchFailure {
 
   NearestStopFetchFailure(this.nearestStopErrorMessage);
 }
+
+class NearestStopClearError {}
