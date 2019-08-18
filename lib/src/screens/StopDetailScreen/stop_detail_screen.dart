@@ -14,6 +14,8 @@ import 'package:mbta_companion/src/screens/StopDetailScreen/widgets/single_timer
 import 'package:mbta_companion/src/screens/StopDetailScreen/widgets/two_lines_timer_row.dart';
 import 'package:mbta_companion/src/services/config.dart';
 import 'package:mbta_companion/src/services/mbta_service.dart';
+import 'package:mbta_companion/src/state/actions/polylinesActions.dart';
+import 'package:mbta_companion/src/state/actions/vehiclesActions.dart';
 import 'package:mbta_companion/src/state/operations/locationOperations.dart';
 import 'package:mbta_companion/src/state/operations/polylinesOperations.dart';
 import 'package:mbta_companion/src/state/operations/vehiclesOperations.dart';
@@ -130,16 +132,22 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
             print("else");
           }
 
-          return Container(
-            child: Column(
-              children: <Widget>[
-                Expanded(
-                  child: topHalfWidget,
-                ),
-                Expanded(
-                  child: bottomHalf(viewModel),
-                ),
-              ],
+          return WillPopScope(
+            onWillPop: () {
+              viewModel.clearPolylinesError();
+              viewModel.clearVehiclesError();
+            },
+            child: Container(
+              child: Column(
+                children: <Widget>[
+                  Expanded(
+                    child: topHalfWidget,
+                  ),
+                  Expanded(
+                    child: bottomHalf(viewModel),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -228,6 +236,9 @@ class _StopDetailScreenViewModel {
   final Function(bool) getVehicles;
   final Function() getBitmap;
 
+  final Function() clearPolylinesError;
+  final Function() clearVehiclesError;
+
   _StopDetailScreenViewModel(
       {this.location,
       this.getLocation,
@@ -241,7 +252,9 @@ class _StopDetailScreenViewModel {
       this.isPolylinesLoading,
       this.getBitmap,
       this.bitmapmap,
-      this.markers});
+      this.markers,
+      this.clearPolylinesError,
+      this.clearVehiclesError});
 
   factory _StopDetailScreenViewModel.create(
       Store<AppState> store, List<Stop> stopsAtLocation) {
@@ -261,7 +274,9 @@ class _StopDetailScreenViewModel {
         polylinesErrorMessage: state.polylinesState.polylinesErrorMessage,
         getBitmap: () => store.dispatch(fetchBitmap()),
         bitmapmap: state.vehiclesState.bitmapmap,
-        markers: getMarkers(state, stopsAtLocation));
+        markers: getMarkers(state, stopsAtLocation),
+        clearPolylinesError: () => store.dispatch(PolylinesClearError()),
+        clearVehiclesError: () => store.dispatch(VehiclesClearError()));
   }
 
   static getMarkers(AppState state, List<Stop> stopsAtLocation) {

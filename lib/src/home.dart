@@ -1,9 +1,16 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:mbta_companion/src/screens/CommuteScreen/commute_screen.dart';
 import 'package:mbta_companion/src/screens/ExploreScreen/explore_screen.dart';
 import 'package:mbta_companion/src/screens/NearbyScreen/nearby_screen.dart';
 import 'package:mbta_companion/src/screens/SavedStopsScreen/saved_screen.dart';
+import 'package:mbta_companion/src/state/actions/allStopsActions.dart';
+import 'package:mbta_companion/src/state/actions/commuteActions.dart';
+import 'package:mbta_companion/src/state/actions/nearestStopActions.dart';
+import 'package:mbta_companion/src/state/actions/savedStopsActions.dart';
+import 'package:mbta_companion/src/state/actions/vehiclesActions.dart';
+import 'package:redux/redux.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:connectivity/connectivity.dart';
@@ -128,6 +135,24 @@ class _HomeState extends State<Home> {
   }
 
   void onTabTapped(int index) {
+    var store = StoreProvider.of(context);
+
+    switch (_currentIndex) {
+      case 0:
+        store.dispatch(CommuteClearError());
+        store.dispatch(NearestStopClearError());
+        break;
+      case 1:
+        store.dispatch(SavedStopsClearError());
+        break;
+      case 2:
+        store.dispatch(AllStopsClearError());
+        break;
+      case 3:
+        store.dispatch(PolylinesClearError());
+        store.dispatch(VehiclesClearError());
+    }
+
     setState(() {
       _currentIndex = index;
     });

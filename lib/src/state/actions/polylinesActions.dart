@@ -14,4 +14,4 @@ class PolylinesFetchFailure {
   PolylinesFetchFailure(this.polylinesErrorMessage);
 }
 
-class AllStopsClearError {}
+class PolylinesClearError {}

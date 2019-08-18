@@ -6,6 +6,7 @@ final Reducer<PolylinesState> polylinesReducer = combineReducers([
   TypedReducer(polylinesFetchSuccess),
   TypedReducer(polylinesFetchPending),
   TypedReducer(polylinesFetchFailure),
+  TypedReducer(polylinesClearError),
 ]);
 
 PolylinesState polylinesFetchSuccess(
@@ -22,4 +23,9 @@ PolylinesState polylinesFetchFailure(
     PolylinesState polylinesState, PolylinesFetchFailure action) {
   return PolylinesState(
       List.unmodifiable([]), false, action.polylinesErrorMessage);
+}
+
+PolylinesState polylinesClearError(
+    PolylinesState polylinesState, PolylinesClearError action) {
+  return PolylinesState(List.unmodifiable([]), false, '');
 }

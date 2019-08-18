@@ -6,7 +6,8 @@ final Reducer<VehiclesState> vehiclesReducer = combineReducers([
   TypedReducer(vehicleFetchSuccess),
   TypedReducer(vehicleFetchPending),
   TypedReducer(vehicleFetchFailure),
-  TypedReducer(vehicleBitmapSuccess)
+  TypedReducer(vehicleBitmapSuccess),
+  TypedReducer(vehicleClearError)
 ]);
 
 VehiclesState vehicleFetchSuccess(
@@ -30,4 +31,10 @@ VehiclesState vehicleBitmapSuccess(
     VehiclesState vehiclesState, BitmapFetchSuccess action) {
   return VehiclesState(vehiclesState.vehicles, vehiclesState.isVehiclesLoading,
       vehiclesState.vehiclesErrorMessage, action.bitmapmap);
+}
+
+VehiclesState vehicleClearError(
+    VehiclesState vehiclesState, VehiclesClearError action) {
+  return VehiclesState(vehiclesState.vehicles, vehiclesState.isVehiclesLoading,
+      '', vehiclesState.bitmapmap);
 }

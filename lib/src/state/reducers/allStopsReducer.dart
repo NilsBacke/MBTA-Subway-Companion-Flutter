@@ -6,6 +6,7 @@ final Reducer<AllStopsState> allStopsReducer = combineReducers([
   TypedReducer(allStopsFetchSuccess),
   TypedReducer(allStopsFetchPending),
   TypedReducer(allStopsFetchFailure),
+  TypedReducer(allStopsClearError),
 ]);
 
 AllStopsState allStopsFetchSuccess(
@@ -22,4 +23,9 @@ AllStopsState allStopsFetchFailure(
     AllStopsState allStopsState, AllStopsFetchFailure action) {
   return AllStopsState(
       List.unmodifiable([]), false, action.allStopsErrorMessage);
+}
+
+AllStopsState allStopsClearError(
+    AllStopsState allStopsState, AllStopsClearError action) {
+  return AllStopsState(List.unmodifiable([]), false, '');
 }
