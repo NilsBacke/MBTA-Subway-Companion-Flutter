@@ -1,15 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:mbta_companion/src/constants/string_constants.dart';
+import 'package:mbta_companion/src/models/polyline.dart' as PolylineModel;
 import 'package:mbta_companion/src/models/stop.dart';
 import 'package:mbta_companion/src/models/vehicle.dart';
 import 'package:mbta_companion/src/services/location_service.dart';
 import 'package:mbta_companion/src/services/permission_service.dart';
 import 'package:mbta_companion/src/state/operations/allStopsOperations.dart';
 import 'package:mbta_companion/src/state/operations/locationOperations.dart';
+import 'package:mbta_companion/src/state/operations/polylinesOperations.dart';
 import 'package:mbta_companion/src/state/operations/vehiclesOperations.dart';
 import 'package:mbta_companion/src/state/state.dart';
 import 'package:mbta_companion/src/utils/show_error_dialog.dart';
@@ -17,6 +20,7 @@ import 'package:mbta_companion/src/utils/stops_list_helpers.dart';
 import 'package:mbta_companion/src/widgets/error_text_widget.dart';
 import 'package:mbta_companion/src/widgets/stops_list_view.dart';
 import 'package:redux/redux.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class NearbyScreen extends StatefulWidget {
   @override
@@ -55,7 +59,16 @@ class _NearbyScreenState extends State<NearbyScreen> {
       return errorTextWidget(context, text: viewModel.vehiclesErrorMessage);
     }
 
-    if (viewModel.isAllStopsLoading || viewModel.allStops.length == 0) {
+    if (viewModel.polylinesErrorMessage.isNotEmpty) {
+      Future.delayed(Duration.zero,
+          () => showErrorDialog(context, viewModel.polylinesErrorMessage));
+      return errorTextWidget(context, text: viewModel.polylinesErrorMessage);
+    }
+
+    if (viewModel.isAllStopsLoading ||
+        viewModel.allStops.length == 0 ||
+        viewModel.isPolylinesLoading ||
+        viewModel.polylines.length == 0) {
       return StopsLoadingIndicator();
     }
 
@@ -70,12 +83,11 @@ class _NearbyScreenState extends State<NearbyScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: StoreConnector<AppState, _NearbyScreenViewModel>(
-        rebuildOnChange: true,
         converter: (store) => _NearbyScreenViewModel.create(store),
         builder: (context, _NearbyScreenViewModel viewModel) {
           final bodyWidget = getBodyWidget(viewModel);
 
-          if (viewModel.bitmap == null) {
+          if (viewModel.bitmapmap == null || viewModel.bitmapmap.length == 0) {
             viewModel.getBitmap();
           }
 
@@ -99,6 +111,14 @@ class _NearbyScreenState extends State<NearbyScreen> {
               viewModel.vehiclesErrorMessage.isEmpty) {
             viewModel.getVehicles(true);
           }
+
+          if (viewModel.polylines != null &&
+              viewModel.polylines.length == 0 &&
+              !viewModel.isPolylinesLoading &&
+              viewModel.polylinesErrorMessage.isEmpty) {
+            viewModel.getPolylines();
+          }
+
           return bodyWidget;
         },
       ),
@@ -108,6 +128,7 @@ class _NearbyScreenState extends State<NearbyScreen> {
   Container topHalf(_NearbyScreenViewModel viewModel) {
     final markers = viewModel.markers;
     final location = viewModel.location;
+    final polylines = viewModel.polylines;
     return Container(
       child: Stack(
         children: <Widget>[
@@ -132,9 +153,10 @@ class _NearbyScreenState extends State<NearbyScreen> {
               )));
             },
             markers: markers.toSet(),
+            polylines: polylines.toSet(),
           ),
           Positioned(
-            bottom: 75.0,
+            bottom: Platform.isIOS ? 75.0 : 12.0,
             right: 12.0,
             child: FloatingActionButton(
               child: Icon(
@@ -162,12 +184,16 @@ class _NearbyScreenViewModel {
   final bool isVehiclesLoading;
   final String vehiclesErrorMessage;
   final List<Marker> markers;
-  final BitmapDescriptor bitmap;
+  final Map<String, BitmapDescriptor> bitmapmap;
+  final List<Polyline> polylines;
+  final bool isPolylinesLoading;
+  final String polylinesErrorMessage;
 
   final Function() getLocation;
   final Function(LocationData) getAllStops;
   final Function(bool) getVehicles;
   final Function() getBitmap;
+  final Function() getPolylines;
 
   _NearbyScreenViewModel(
       {this.location,
@@ -179,16 +205,45 @@ class _NearbyScreenViewModel {
       this.vehicles,
       this.isVehiclesLoading,
       this.vehiclesErrorMessage,
-      this.bitmap,
+      this.bitmapmap,
       this.getLocation,
       this.getAllStops,
       this.getVehicles,
       this.markers,
-      this.getBitmap});
+      this.getBitmap,
+      this.polylines,
+      this.isPolylinesLoading,
+      this.polylinesErrorMessage,
+      this.getPolylines});
 
   factory _NearbyScreenViewModel.create(Store<AppState> store) {
     final state = store.state;
 
+    return _NearbyScreenViewModel(
+        location: state.locationState.locationData,
+        isLocationLoading: state.locationState.isLocationLoading,
+        locationErrorStatus: state.locationState.locationErrorStatus,
+        allStops: state.allStopsState.allStops,
+        isAllStopsLoading: state.allStopsState.isAllStopsLoading,
+        allStopsErrorMessage: state.allStopsState.allStopsErrorMessage,
+        vehicles: state.vehiclesState.vehicles,
+        isVehiclesLoading: state.vehiclesState.isVehiclesLoading,
+        vehiclesErrorMessage: state.vehiclesState.vehiclesErrorMessage,
+        getLocation: () => store.dispatch(fetchLocation()),
+        getAllStops: (LocationData locationData) =>
+            store.dispatch(fetchAllStops(locationData)),
+        getVehicles: (bool activatePending) =>
+            store.dispatch(fetchVehicles(activatePending)),
+        markers: getMarkersFromState(state),
+        bitmapmap: state.vehiclesState.bitmapmap,
+        getBitmap: () => store.dispatch(fetchBitmap()),
+        polylines: getPolylinesFromState(state.polylinesState.polylines),
+        isPolylinesLoading: state.polylinesState.isPolylinesLoading,
+        polylinesErrorMessage: state.polylinesState.polylinesErrorMessage,
+        getPolylines: () => store.dispatch(fetchPolylines()));
+  }
+
+  static getMarkersFromState(AppState state) {
     final List<Marker> markers = [];
 
     if (state.allStopsState.allStops != null &&
@@ -213,9 +268,14 @@ class _NearbyScreenViewModel {
 
     if (state.vehiclesState.vehicles != null &&
         state.vehiclesState.vehicles.length != 0 &&
-        state.vehiclesState.bitmap != null) {
+        state.vehiclesState.bitmapmap != null) {
       for (final Vehicle vehicle in state.vehiclesState.vehicles) {
-        final icon = state.vehiclesState.bitmap;
+        var icon;
+        if (vehicle.lineName.contains("Green")) {
+          icon = state.vehiclesState.bitmapmap["Green Line"];
+        } else {
+          icon = state.vehiclesState.bitmapmap[vehicle.lineName];
+        }
         var marker = Marker(
           markerId: MarkerId(vehicle.id),
           position: LatLng(vehicle.latitude, vehicle.longitude),
@@ -231,23 +291,6 @@ class _NearbyScreenViewModel {
       }
     }
 
-    return _NearbyScreenViewModel(
-        location: state.locationState.locationData,
-        isLocationLoading: state.locationState.isLocationLoading,
-        locationErrorStatus: state.locationState.locationErrorStatus,
-        allStops: state.allStopsState.allStops,
-        isAllStopsLoading: state.allStopsState.isAllStopsLoading,
-        allStopsErrorMessage: state.allStopsState.allStopsErrorMessage,
-        vehicles: state.vehiclesState.vehicles,
-        isVehiclesLoading: state.vehiclesState.isVehiclesLoading,
-        vehiclesErrorMessage: state.vehiclesState.vehiclesErrorMessage,
-        getLocation: () => store.dispatch(fetchLocation()),
-        getAllStops: (LocationData locationData) =>
-            store.dispatch(fetchAllStops(locationData)),
-        getVehicles: (bool activatePending) =>
-            store.dispatch(fetchVehicles(activatePending)),
-        markers: markers,
-        bitmap: state.vehiclesState.bitmap,
-        getBitmap: () => store.dispatch(fetchBitmap()));
+    return markers;
   }
 }

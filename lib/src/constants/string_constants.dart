@@ -17,3 +17,5 @@ const vehiclesErrorMessage = 'Error getting locations of all trains';
 const branchWarningMessage =
     "Unfortunately the MBTA does not provide specific branch arrival times for this stop";
 const saveCommuteError = "Error saving commute. Please try again";
+const polylinesErrorMessage =
+    "Error loading some map data. You may see an incomplete map. Please try again.";

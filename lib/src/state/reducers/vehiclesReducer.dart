@@ -11,22 +11,23 @@ final Reducer<VehiclesState> vehiclesReducer = combineReducers([
 
 VehiclesState vehicleFetchSuccess(
     VehiclesState vehiclesState, VehiclesFetchSuccess action) {
-  return VehiclesState(action.vehicles, false, '', vehiclesState.bitmap);
+  return VehiclesState(action.vehicles, false, '', vehiclesState.bitmapmap);
 }
 
 VehiclesState vehicleFetchPending(
     VehiclesState vehiclesState, VehiclesFetchPending action) {
-  return VehiclesState(vehiclesState.vehicles, true, '', vehiclesState.bitmap);
+  return VehiclesState(
+      vehiclesState.vehicles, true, '', vehiclesState.bitmapmap);
 }
 
 VehiclesState vehicleFetchFailure(
     VehiclesState vehiclesState, VehiclesFetchFailure action) {
   return VehiclesState(List.unmodifiable([]), false,
-      action.vehiclesErrorMessage, vehiclesState.bitmap);
+      action.vehiclesErrorMessage, vehiclesState.bitmapmap);
 }
 
 VehiclesState vehicleBitmapSuccess(
     VehiclesState vehiclesState, BitmapFetchSuccess action) {
   return VehiclesState(vehiclesState.vehicles, vehiclesState.isVehiclesLoading,
-      vehiclesState.vehiclesErrorMessage, action.bitmap);
+      vehiclesState.vehiclesErrorMessage, action.bitmapmap);
 }

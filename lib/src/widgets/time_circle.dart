@@ -38,6 +38,11 @@ class _TimeCircleComboState extends State<TimeCircleCombo> {
   Future<void> getStream() async {
     final stream =
         await MBTAStreamService.streamPredictionsForStopId(widget.stopId);
+
+    if (stream == null) {
+      return;
+    }
+
     subscription = stream.listen((PredictionEvent event) {
       if (!this.mounted) {
         return;

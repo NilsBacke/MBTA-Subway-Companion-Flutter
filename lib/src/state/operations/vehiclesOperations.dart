@@ -5,6 +5,7 @@ import 'package:mbta_companion/src/state/actions/vehiclesActions.dart';
 import 'package:mbta_companion/src/utils/report_error.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
+import 'dart:io' show Platform;
 
 ThunkAction fetchVehicles(bool activatePending) {
   return (Store store) async {
@@ -27,9 +28,19 @@ ThunkAction fetchVehicles(bool activatePending) {
 ThunkAction fetchBitmap() {
   return (Store store) async {
     Future(() async {
-      final bitmap = await BitmapDescriptor.fromAssetImage(
-          ImageConfiguration(), "assets/arrow_1_50x50.png");
-      store.dispatch(BitmapFetchSuccess(bitmap));
+      final bitmapmap = Map<String, BitmapDescriptor>();
+      String sizeString = Platform.isIOS ? "48" : "96";
+      bitmapmap['Red Line'] = await BitmapDescriptor.fromAssetImage(
+          ImageConfiguration(), "assets/red-arrow-$sizeString.png");
+      bitmapmap['Mattapan Line'] = await BitmapDescriptor.fromAssetImage(
+          ImageConfiguration(), "assets/red-arrow-$sizeString.png");
+      bitmapmap['Orange Line'] = await BitmapDescriptor.fromAssetImage(
+          ImageConfiguration(), "assets/orange-arrow-$sizeString.png");
+      bitmapmap['Green Line'] = await BitmapDescriptor.fromAssetImage(
+          ImageConfiguration(), "assets/green-arrow-$sizeString.png");
+      bitmapmap['Blue Line'] = await BitmapDescriptor.fromAssetImage(
+          ImageConfiguration(), "assets/blue-arrow-$sizeString.png");
+      store.dispatch(BitmapFetchSuccess(bitmapmap));
     });
   };
 }
