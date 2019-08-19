@@ -92,8 +92,7 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          widget.stop.name +
-              (FIREBASE_STAGE == "staging" ? " " + widget.stop.id : ""),
+          widget.stop.name,
         ),
       ),
       body: StoreConnector<AppState, _StopDetailScreenViewModel>(
@@ -133,9 +132,10 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
           }
 
           return WillPopScope(
-            onWillPop: () {
+            onWillPop: () async {
               viewModel.clearPolylinesError();
               viewModel.clearVehiclesError();
+              return true;
             },
             child: Container(
               child: Column(

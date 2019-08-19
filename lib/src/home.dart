@@ -11,6 +11,7 @@ import 'package:mbta_companion/src/state/actions/nearestStopActions.dart';
 import 'package:mbta_companion/src/state/actions/polylinesActions.dart';
 import 'package:mbta_companion/src/state/actions/savedStopsActions.dart';
 import 'package:mbta_companion/src/state/actions/vehiclesActions.dart';
+import 'package:mbta_companion/src/state/state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:connectivity/connectivity.dart';
@@ -135,7 +136,7 @@ class _HomeState extends State<Home> {
   }
 
   void onTabTapped(int index) {
-    var store = StoreProvider.of(context);
+    var store = StoreProvider.of<AppState>(context);
 
     switch (_currentIndex) {
       case 0:
