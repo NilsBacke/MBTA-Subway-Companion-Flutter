@@ -8,8 +8,12 @@ Future<void> reportError(dynamic error, dynamic stackTrace) async {
   // Print the exception to the console.
   print('Caught error: $error');
   print(stackTrace);
-  _sentry.captureException(
-    exception: error,
-    stackTrace: stackTrace,
-  );
+  try {
+    _sentry.captureException(
+      exception: error,
+      stackTrace: stackTrace,
+    );
+  } catch (e) {
+    print("No Internet connection to upload sentry logs");
+  }
 }

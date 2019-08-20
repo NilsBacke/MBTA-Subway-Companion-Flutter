@@ -54,8 +54,9 @@ class _CreateCommuteScreenState extends State<CreateCommuteScreen> {
     return !(commute.stop1.id == commute.homeStopId);
   }
 
-  handleChosenStop(homeStop, context, {Stop currentStop}) async {
-    Stop stop = await chooseStop(homeStop, context);
+  handleChosenStop(
+      bool homeStop, BuildContext context, Stop currentStop) async {
+    Stop stop = await chooseStop(context, homeStop);
 
     if (!this.mounted) {
       return;
@@ -94,17 +95,6 @@ class _CreateCommuteScreenState extends State<CreateCommuteScreen> {
             this.departureTime = time;
           });
         }
-      }
-    });
-  }
-
-  void onSelectStop(bool homeStop) async {
-    final newStop = await chooseStop(context, homeStop);
-    setState(() {
-      if (homeStop) {
-        this.stop1 = newStop;
-      } else {
-        this.stop2 = newStop;
       }
     });
   }
@@ -189,14 +179,14 @@ class _CreateCommuteScreenState extends State<CreateCommuteScreen> {
                             "Home",
                             "Tap to add home stop",
                             this.stop1,
-                            this.onSelectStop),
+                            this.handleChosenStop),
                         stopContainer(
                             context,
                             false,
                             "Work",
                             "Tap to add work stop",
                             this.stop2,
-                            this.onSelectStop),
+                            this.handleChosenStop),
                         timeSelectionRow(context, this.arrivalTime,
                             this.departureTime, pickTime),
                         isLoading

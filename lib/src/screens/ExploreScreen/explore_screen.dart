@@ -5,6 +5,7 @@ import 'package:mbta_companion/src/constants/string_constants.dart';
 import 'package:mbta_companion/src/models/stop.dart';
 import 'package:mbta_companion/src/screens/ExploreScreen/utils/filter_search_results.dart';
 import 'package:mbta_companion/src/services/permission_service.dart';
+import 'package:mbta_companion/src/state/actions/allStopsActions.dart';
 import 'package:mbta_companion/src/state/operations/allStopsOperations.dart';
 import 'package:mbta_companion/src/state/operations/locationOperations.dart';
 import 'package:mbta_companion/src/state/state.dart';
@@ -68,10 +69,16 @@ class _ExploreScreenState extends State<ExploreScreen> {
       return errorTextWidget(context);
     }
 
-    return StopsListView(filteredStops,
-        onTap: widget.onTap,
-        timeCircles: widget.timeCircles,
-        includeOtherInfo: widget.includeOtherInfo);
+    return WillPopScope(
+      onWillPop: () async {
+        viewModel.clearError();
+        return true;
+      },
+      child: StopsListView(filteredStops,
+          onTap: widget.onTap,
+          timeCircles: widget.timeCircles,
+          includeOtherInfo: widget.includeOtherInfo),
+    );
   }
 
   void onSearchChange(_ExploreViewModel viewModel, String searchText) {
@@ -204,6 +211,7 @@ class _ExploreViewModel {
 
   final Function() getLocation;
   final Function(LocationData) getAllStops;
+  final Function() clearError;
 
   _ExploreViewModel(
       {this.location,
@@ -213,7 +221,8 @@ class _ExploreViewModel {
       this.isAllStopsLoading,
       this.allStopsErrorMessage,
       this.getLocation,
-      this.getAllStops});
+      this.getAllStops,
+      this.clearError});
 
   factory _ExploreViewModel.create(Store<AppState> store, bool consolidated) {
     final state = store.state;
@@ -229,6 +238,7 @@ class _ExploreViewModel {
         allStopsErrorMessage: state.allStopsState.allStopsErrorMessage,
         getLocation: () => store.dispatch(fetchLocation()),
         getAllStops: (LocationData locationData) =>
-            store.dispatch(fetchAllStops(locationData)));
+            store.dispatch(fetchAllStops(locationData)),
+        clearError: () => store.dispatch(AllStopsClearError()));
   }
 }

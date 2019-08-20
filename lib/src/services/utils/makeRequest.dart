@@ -23,7 +23,7 @@ Future<Result> makeRequest(Method method, String route,
         new GenericRequest(method, route, headers: headers, body: body));
   } catch (e) {
     var jsonResult;
-    if (result.body) {
+    if (result != null && result.body) {
       jsonResult = json.decode(result.body);
     }
     print(

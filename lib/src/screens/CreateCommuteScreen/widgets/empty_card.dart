@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:mbta_companion/src/models/stop.dart';
 
 Widget emptyCard(BuildContext context, bool homeStop, String text,
-    Function(bool) onSelectStop) {
+    Stop currentStop, Function(bool, BuildContext, Stop) onSelectStop) {
   return GestureDetector(
     onTap: () {
-      onSelectStop(homeStop);
+      onSelectStop(homeStop, context, currentStop);
     },
     child: Container(
       height: 75.0,
