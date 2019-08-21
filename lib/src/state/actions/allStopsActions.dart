@@ -13,3 +13,5 @@ class AllStopsFetchFailure {
 
   AllStopsFetchFailure(this.allStopsErrorMessage);
 }
+
+class AllStopsClearError {}

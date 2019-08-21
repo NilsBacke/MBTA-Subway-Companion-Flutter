@@ -4,7 +4,7 @@ import 'package:mbta_companion/src/screens/CreateCommuteScreen/widgets/empty_car
 import 'package:mbta_companion/src/widgets/stop_card.dart';
 
 Widget stopContainer(BuildContext context, bool homeStop, String title,
-    String body, Stop stop, Function(bool) onSelectStop) {
+    String body, Stop stop, Function(bool, BuildContext, Stop) onSelectStop) {
   return Container(
     padding: EdgeInsets.all(12.0),
     child: Column(
@@ -18,12 +18,12 @@ Widget stopContainer(BuildContext context, bool homeStop, String title,
           ),
         ),
         stop == null
-            ? emptyCard(context, homeStop, body, onSelectStop)
+            ? emptyCard(context, homeStop, body, stop, onSelectStop)
             : StopCard(
                 stop: stop,
                 timeCircles: false,
                 onTap: (_) {
-                  onSelectStop(homeStop);
+                  onSelectStop(homeStop, context, stop);
                 },
                 includeOtherInfo: false,
               ),

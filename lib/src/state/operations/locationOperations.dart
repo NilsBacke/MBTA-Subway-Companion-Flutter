@@ -15,21 +15,12 @@ ThunkAction fetchLocation() {
         if (permissions == LocationStatus.noPermission ||
             permissions == LocationStatus.noService) {
           store.dispatch(LocationFetchFailure(permissions));
-          Location().requestPermission().then((result) async {
-            // TODO: consolidate repeated code
-            if (result == false) {
-              store.dispatch(LocationFetchFailure(LocationStatus.noPermission));
-            } else {
-              try {
-                var locationData = await LocationService.currentLocation;
-                store.dispatch(LocationFetchSuccess(locationData));
-              } catch (e) {
-                print("$e");
-                store.dispatch(LocationFetchFailure(LocationStatus.unknown));
-              }
-            }
-          });
-          return;
+          final result = await Location().requestPermission();
+
+          if (result == false) {
+            store.dispatch(LocationFetchFailure(LocationStatus.noPermission));
+            return;
+          }
         }
 
         var locationData = await LocationService.currentLocation;

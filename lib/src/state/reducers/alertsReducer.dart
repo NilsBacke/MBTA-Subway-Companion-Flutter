@@ -22,3 +22,7 @@ AlertsState alertsFetchFailure(
     AlertsState alertsState, AlertsFetchFailure action) {
   return AlertsState(null, false, action.alertErrorMessage);
 }
+
+AlertsState alertsClearError(AlertsState alertsState, AlertsClearError action) {
+  return AlertsState(null, false, '');
+}

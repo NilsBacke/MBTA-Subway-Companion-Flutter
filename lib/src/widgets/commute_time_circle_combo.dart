@@ -30,8 +30,12 @@ class _CommuteTimeCircleComboState extends State<CommuteTimeCircleCombo> {
   Future<void> getStream() async {
     final stream =
         await MBTAStreamService.streamPredictionsForStopId(widget.startStop.id);
-    this.minutes = await GoogleAPIService.getTimeBetweenStops(
-        widget.startStop, widget.endStop);
+    try {
+      this.minutes = await GoogleAPIService.getTimeBetweenStops(
+          widget.startStop, widget.endStop);
+    } catch (e) {
+      this.minutes = null;
+    }
 
     this.subscription = stream.listen((PredictionEvent event) {
       if (!this.mounted) {

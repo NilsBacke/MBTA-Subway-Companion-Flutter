@@ -45,7 +45,8 @@ class _SavedScreenState extends State<SavedScreen> {
         if (viewModel.isSavedStopsLoading) {
           bodyWidget = StopsLoadingIndicator();
         } else if (viewModel.savedStopsError.isNotEmpty) {
-          showErrorDialog(context, viewModel.savedStopsError);
+          Future.delayed(Duration.zero,
+              () => showErrorDialog(context, viewModel.savedStopsError));
           bodyWidget = errorSavedList(context, viewModel.savedStopsError);
         } else if (viewModel.savedStops == null ||
             viewModel.savedStops.length == 0) {
@@ -114,6 +115,6 @@ class _SavedViewModel {
         getSavedStops: () => store.dispatch(fetchSavedStops()),
         addStop: (Stop stop) => store.dispatch(addSavedStop(stop)),
         removeStop: (Stop stop) => store.dispatch(removeSavedStop(stop)),
-        clearError: () => store.dispatch(ClearSavedStopsError()));
+        clearError: () => store.dispatch(SavedStopsClearError()));
   }
 }

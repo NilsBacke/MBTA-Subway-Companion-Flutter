@@ -11,14 +11,15 @@ ThunkAction fetchCommute() {
       store.dispatch(CommuteFetchPending());
       try {
         final commute = await CommuteService.getCommute();
-        store.dispatch(CommuteFetchSuccess(commute));
-      } catch (e, stackTrace) {
-        print("$e");
-        if (e.message == "Doc does not exist") {
+
+        if (commute == null) {
           store.dispatch(CommuteSetExists(false));
           store.dispatch(CommuteFetchSuccess(null));
-          return;
+        } else {
+          store.dispatch(CommuteFetchSuccess(commute));
         }
+      } catch (e, stackTrace) {
+        print("$e");
         store.dispatch(CommuteFetchFailure(e.message));
         reportError(e, stackTrace);
       }

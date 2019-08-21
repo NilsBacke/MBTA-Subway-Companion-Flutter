@@ -58,10 +58,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             new Positioned(
-              bottom: 40.0,
+              bottom: 46.0,
               right: 20.0,
               child: Container(
-                height: 50.0,
+                height: 40.0,
                 width: 100.0,
                 decoration: BoxDecoration(
                   gradient: new LinearGradient(

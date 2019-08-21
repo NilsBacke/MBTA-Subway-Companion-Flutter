@@ -24,7 +24,6 @@ class StopsListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: do we also want to call getLocation()?
     return StoreConnector<AppState, _StopsListViewModel>(
       converter: (store) => _StopsListViewModel.create(store),
       builder: (context, _StopsListViewModel viewModel) {

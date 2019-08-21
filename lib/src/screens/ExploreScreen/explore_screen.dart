@@ -1,4 +1,3 @@
-import 'package:floating_search_bar/floating_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:location/location.dart';
@@ -6,6 +5,7 @@ import 'package:mbta_companion/src/constants/string_constants.dart';
 import 'package:mbta_companion/src/models/stop.dart';
 import 'package:mbta_companion/src/screens/ExploreScreen/utils/filter_search_results.dart';
 import 'package:mbta_companion/src/services/permission_service.dart';
+import 'package:mbta_companion/src/state/actions/allStopsActions.dart';
 import 'package:mbta_companion/src/state/operations/allStopsOperations.dart';
 import 'package:mbta_companion/src/state/operations/locationOperations.dart';
 import 'package:mbta_companion/src/state/state.dart';
@@ -35,7 +35,7 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   TextEditingController searchBarController = TextEditingController();
-  List<Stop> filteredStops = [];
+  List<Stop> filteredStops;
 
   Widget getBodyWidget(_ExploreViewModel viewModel) {
     // error handling
@@ -50,28 +50,36 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
 
     if (viewModel.allStopsErrorMessage.isNotEmpty) {
-      showErrorDialog(context, viewModel.allStopsErrorMessage);
+      Future.delayed(Duration.zero,
+          () => showErrorDialog(context, viewModel.allStopsErrorMessage));
       return errorTextWidget(context, text: viewModel.allStopsErrorMessage);
     }
 
     // loading
-    if (viewModel.isAllStopsLoading || viewModel.isLocationLoading) {
+    if (filteredStops == null ||
+        viewModel.isAllStopsLoading ||
+        viewModel.isLocationLoading) {
       return StopsLoadingIndicator();
     }
 
-    if ((filteredStops == null || filteredStops.length == 0) &&
+    if (filteredStops != null &&
+        filteredStops.length == 0 &&
         viewModel.allStops.length != 0) {
-      this.filteredStops = viewModel.allStops;
+      return errorTextWidget(context,
+          text:
+              "No stops found.\nTry searching something else."); // TODO: put in constants
     }
 
-    if (filteredStops.length == 0) {
-      return errorTextWidget(context);
-    }
-
-    return StopsListView(filteredStops,
-        onTap: widget.onTap,
-        timeCircles: widget.timeCircles,
-        includeOtherInfo: widget.includeOtherInfo);
+    return WillPopScope(
+      onWillPop: () async {
+        viewModel.clearError();
+        return true;
+      },
+      child: StopsListView(filteredStops,
+          onTap: widget.onTap,
+          timeCircles: widget.timeCircles,
+          includeOtherInfo: widget.includeOtherInfo),
+    );
   }
 
   void onSearchChange(_ExploreViewModel viewModel, String searchText) {
@@ -143,7 +151,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
         converter: (store) =>
             _ExploreViewModel.create(store, widget.consolidated),
         builder: (context, _ExploreViewModel viewModel) {
-          var bodyWidget = getBodyWidget(viewModel);
+          if (viewModel.allStops != null &&
+              viewModel.allStops.length != 0 &&
+              this.filteredStops == null) {
+            this.filteredStops = viewModel.allStops;
+          }
+
+          final bodyWidget = getBodyWidget(viewModel);
 
           if (viewModel.location == null &&
               !viewModel.isLocationLoading &&
@@ -204,6 +218,7 @@ class _ExploreViewModel {
 
   final Function() getLocation;
   final Function(LocationData) getAllStops;
+  final Function() clearError;
 
   _ExploreViewModel(
       {this.location,
@@ -213,7 +228,8 @@ class _ExploreViewModel {
       this.isAllStopsLoading,
       this.allStopsErrorMessage,
       this.getLocation,
-      this.getAllStops});
+      this.getAllStops,
+      this.clearError});
 
   factory _ExploreViewModel.create(Store<AppState> store, bool consolidated) {
     final state = store.state;
@@ -229,6 +245,7 @@ class _ExploreViewModel {
         allStopsErrorMessage: state.allStopsState.allStopsErrorMessage,
         getLocation: () => store.dispatch(fetchLocation()),
         getAllStops: (LocationData locationData) =>
-            store.dispatch(fetchAllStops(locationData)));
+            store.dispatch(fetchAllStops(locationData)),
+        clearError: () => store.dispatch(AllStopsClearError()));
   }
 }

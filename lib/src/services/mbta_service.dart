@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:mbta_companion/src/constants/string_constants.dart';
 import 'package:mbta_companion/src/models/alert.dart';
+import 'package:mbta_companion/src/models/polyline.dart';
+import 'package:mbta_companion/src/models/polylineData.dart';
 import 'package:mbta_companion/src/models/vehicle.dart';
 import 'package:mbta_companion/src/services/config.dart';
 import 'package:mbta_companion/src/services/utils/makeRequest.dart';
@@ -19,6 +21,7 @@ class MBTAService {
   static final alertsRoute = "/stops/alerts";
   static final neighborStopRoute = "/stops/neighbor";
   static final vehiclesRoute = "/vehicles";
+  static final polylinesRoute = "/polylines";
   static final rangeInMiles = 100;
   static final apiKey = MBTA_API_KEY;
   static final baseURL = MBTA_API_URL;
@@ -149,6 +152,28 @@ class MBTAService {
       vehicles.add(Vehicle.fromJson(vehicle));
     }
     return vehicles;
+  }
+
+  static Future<List<Polyline>> fetchPolylines() async {
+    // final route = "$newAPIURL$polylinesRoute";
+    // final result =
+    //     await makeRequest(Method.GET, route, headers: {"x-api-key": awsAPIKey});
+
+    // if (result.hasError) {
+    //   if (result.payload['error'] != null) {
+    //     print(result.payload['error']);
+    //     throw new Exception(result.payload['userError']);
+    //   } else {
+    //     print(result.error);
+    //     throw new Exception(polylinesErrorMessage);
+    //   }
+    // }
+
+    List<Polyline> polylines = List();
+    for (final polyline in allPolylinesJson) {
+      polylines.add(Polyline.fromJson(polyline));
+    }
+    return polylines;
   }
 
   static List<Stop> _jsonToListOfStops(dynamic jsonData) {

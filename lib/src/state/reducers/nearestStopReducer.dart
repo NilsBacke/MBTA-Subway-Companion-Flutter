@@ -6,6 +6,7 @@ final Reducer<NearestStopState> nearestStopReducer = combineReducers([
   TypedReducer(nearestStopFetchSuccess),
   TypedReducer(nearestStopFetchPending),
   TypedReducer(nearestStopFetchFailure),
+  TypedReducer(nearestStopClearError)
 ]);
 
 NearestStopState nearestStopFetchSuccess(
@@ -31,4 +32,14 @@ NearestStopState nearestStopFetchFailure(
           : List.unmodifiable(nearestStopState.nearestStop),
       false,
       action.nearestStopErrorMessage);
+}
+
+NearestStopState nearestStopClearError(
+    NearestStopState nearestStopState, NearestStopClearError action) {
+  return NearestStopState(
+      nearestStopState.nearestStop == null
+          ? null
+          : List.unmodifiable(nearestStopState.nearestStop),
+      false,
+      '');
 }

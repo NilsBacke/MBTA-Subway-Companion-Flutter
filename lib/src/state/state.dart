@@ -1,6 +1,9 @@
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:mbta_companion/src/models/alert.dart';
 import 'package:mbta_companion/src/models/commute.dart';
+import 'package:mbta_companion/src/models/polyline.dart' as PolylineModel;
 import 'package:mbta_companion/src/models/stop.dart';
 import 'package:mbta_companion/src/models/vehicle.dart';
 import 'package:mbta_companion/src/services/permission_service.dart';
@@ -14,6 +17,7 @@ class AppState {
   final AlertsState alertsState;
   final SelectedStopState selectedStopState;
   final VehiclesState vehiclesState;
+  final PolylinesState polylinesState;
 
   AppState(
       this.locationState,
@@ -23,7 +27,8 @@ class AppState {
       this.allStopsState,
       this.alertsState,
       this.selectedStopState,
-      this.vehiclesState);
+      this.vehiclesState,
+      this.polylinesState);
 
   factory AppState.initial() => AppState(
       LocationState.initial(),
@@ -33,11 +38,12 @@ class AppState {
       AllStopsState.initial(),
       AlertsState.initial(),
       SelectedStopState.initial(),
-      VehiclesState.initial());
+      VehiclesState.initial(),
+      PolylinesState.initial());
 
   @override
   String toString() {
-    return "\n{ \nlocationState: ${this.locationState.toString()}, \nnearestStopState: ${this.nearestStopState.toString()} \ncommuteState: ${this.commuteState.toString()}, \nsavedStopsState: ${this.savedStopsState.toString()}, \nallStopsState: ${this.allStopsState.toString()}, \nalertsState: ${this.alertsState.toString()}, \nselectedStopState: ${this.selectedStopState.toString()} \n} vehiclesState: ${this.vehiclesState.toString()}, \n";
+    return "\n{ \nlocationState: ${this.locationState.toString()}, \nnearestStopState: ${this.nearestStopState.toString()} \ncommuteState: ${this.commuteState.toString()}, \nsavedStopsState: ${this.savedStopsState.toString()}, \nallStopsState: ${this.allStopsState.toString()}, \nalertsState: ${this.alertsState.toString()}, \nselectedStopState: ${this.selectedStopState.toString()} \n} vehiclesState: ${this.vehiclesState.toString()}, polylinesState: ${this.polylinesState.toString()}, \n";
   }
 }
 
@@ -102,7 +108,7 @@ class SavedStopsState {
 
   @override
   String toString() {
-    return "{ savedStops: ${this.savedStops.toString()}, isSavedStopsLoading: ${this.isSavedStopsLoading}, savedStopsErrorMessage: ${this.savedStopsErrorMessage} }";
+    return "{ savedStops: ${this.savedStops == null ? null : this.savedStops.length.toString()}, isSavedStopsLoading: ${this.isSavedStopsLoading}, savedStopsErrorMessage: ${this.savedStopsErrorMessage} }";
   }
 }
 
@@ -119,7 +125,7 @@ class AllStopsState {
 
   @override
   String toString() {
-    return "{ allStops: ${this.allStops.toString()}, isAllStopsLoading: ${this.isAllStopsLoading}, allStopsErrorMessage: ${this.allStopsErrorMessage} }";
+    return "{ allStops: ${this.allStops.length.toString()}, isAllStopsLoading: ${this.isAllStopsLoading}, allStopsErrorMessage: ${this.allStopsErrorMessage} }";
   }
 }
 
@@ -135,7 +141,7 @@ class AlertsState {
 
   @override
   String toString() {
-    return "{ alerts: ${this.alerts.toString()}, isAlertsLoading: ${this.isAlertsLoading}, alertsErrorMessage: ${this.alertsErrorMessage} }";
+    return "{ alerts: ${this.alerts.length.toString()}, isAlertsLoading: ${this.isAlertsLoading}, alertsErrorMessage: ${this.alertsErrorMessage} }";
   }
 }
 
@@ -156,15 +162,57 @@ class VehiclesState {
   final List<Vehicle> vehicles;
   final bool isVehiclesLoading;
   final String vehiclesErrorMessage;
+  final Map<String, BitmapDescriptor> bitmapmap;
 
-  VehiclesState(
-      this.vehicles, this.isVehiclesLoading, this.vehiclesErrorMessage);
+  VehiclesState(this.vehicles, this.isVehiclesLoading,
+      this.vehiclesErrorMessage, this.bitmapmap);
 
-  factory VehiclesState.initial() =>
-      VehiclesState(List.unmodifiable([]), false, '');
+  factory VehiclesState.initial() => VehiclesState(
+      List.unmodifiable([]), false, '', Map<String, BitmapDescriptor>());
 
   @override
   String toString() {
-    return "{ vehicles: ${this.vehicles.toString()}, isVehiclesLoading: ${this.isVehiclesLoading}, vehiclesErrorMessage: ${this.vehiclesErrorMessage} }";
+    return "{ vehicles: ${this.vehicles.length.toString()}, isVehiclesLoading: ${this.isVehiclesLoading}, vehiclesErrorMessage: ${this.vehiclesErrorMessage}, bitmap: ${this.bitmapmap} }";
   }
+}
+
+class PolylinesState {
+  final List<PolylineModel.Polyline> polylines;
+  final bool isPolylinesLoading;
+  final String polylinesErrorMessage;
+
+  PolylinesState(
+      this.polylines, this.isPolylinesLoading, this.polylinesErrorMessage);
+
+  factory PolylinesState.initial() =>
+      PolylinesState(List.unmodifiable([]), false, '');
+
+  @override
+  String toString() {
+    return "{ polylines: ${this.polylines.length.toString()}, ispolylinesLoading: ${this.isPolylinesLoading}, polylinesErrorMessage: ${this.polylinesErrorMessage} }";
+  }
+}
+
+List<Polyline> getPolylinesFromState(List<PolylineModel.Polyline> polyModels) {
+  final List<Polyline> polylines = [];
+  int i = 0;
+
+  for (PolylineModel.Polyline model in polyModels) {
+    final List<PointLatLng> latlngs =
+        PolylinePoints().decodePolyline(model.polyline);
+    final List<LatLng> points = [];
+    for (final latlng in latlngs) {
+      points.add(LatLng(latlng.latitude, latlng.longitude));
+    }
+    polylines.add(
+      Polyline(
+          polylineId: PolylineId(model.lineTitle + " " + i.toString()),
+          color: model.polylineColor,
+          points: points,
+          width: 8),
+    );
+    i++;
+  }
+
+  return polylines;
 }

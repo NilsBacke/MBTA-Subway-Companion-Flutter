@@ -47,3 +47,5 @@ class CommuteSetExists {
 
   CommuteSetExists(this.exists);
 }
+
+class CommuteClearError {}

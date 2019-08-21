@@ -12,7 +12,8 @@ final Reducer<CommuteState> commuteReducer = combineReducers([
   TypedReducer(commuteDeleteSuccess),
   TypedReducer(commuteDeletePending),
   TypedReducer(commuteDeleteFailure),
-  TypedReducer(commuteSetExists)
+  TypedReducer(commuteSetExists),
+  TypedReducer(commuteClearError)
 ]);
 
 CommuteState commuteFetchSuccess(
@@ -67,4 +68,10 @@ CommuteState commuteSetExists(
     CommuteState commuteState, CommuteSetExists action) {
   return CommuteState(commuteState.commute, false,
       commuteState.commuteErrorMessage, action.exists);
+}
+
+CommuteState commuteClearError(
+    CommuteState commuteState, CommuteClearError action) {
+  return CommuteState(
+      commuteState.commute, false, '', commuteState.doesCommuteExist);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:mbta_companion/src/constants/string_constants.dart';
 import 'package:mbta_companion/src/models/commute.dart';
 import 'package:mbta_companion/src/models/stop.dart';
 import 'package:mbta_companion/src/screens/CreateCommuteScreen/utils/choose_stop.dart';
@@ -12,6 +13,7 @@ import 'package:mbta_companion/src/services/google_api_service.dart';
 import 'package:mbta_companion/src/services/mbta_service.dart';
 import 'package:mbta_companion/src/state/operations/commuteOperations.dart';
 import 'package:mbta_companion/src/state/state.dart';
+import 'package:mbta_companion/src/utils/show_error_dialog.dart';
 import 'package:mbta_companion/src/utils/stops_list_helpers.dart';
 import 'package:redux/redux.dart';
 
@@ -52,8 +54,9 @@ class _CreateCommuteScreenState extends State<CreateCommuteScreen> {
     return !(commute.stop1.id == commute.homeStopId);
   }
 
-  handleChosenStop(homeStop, context, {Stop currentStop}) async {
-    Stop stop = await chooseStop(homeStop, context);
+  handleChosenStop(
+      bool homeStop, BuildContext context, Stop currentStop) async {
+    Stop stop = await chooseStop(context, homeStop);
 
     if (!this.mounted) {
       return;
@@ -96,17 +99,6 @@ class _CreateCommuteScreenState extends State<CreateCommuteScreen> {
     });
   }
 
-  void onSelectStop(bool homeStop) async {
-    final newStop = await chooseStop(context, homeStop);
-    setState(() {
-      if (homeStop) {
-        this.stop1 = newStop;
-      } else {
-        this.stop2 = newStop;
-      }
-    });
-  }
-
   Future<void> createCommute(
       BuildContext context,
       CreateCommuteViewModel viewModel,
@@ -123,38 +115,44 @@ class _CreateCommuteScreenState extends State<CreateCommuteScreen> {
       isLoading = true;
     });
 
-    // TODO: error handling
-    final direction1 =
-        await GoogleAPIService.getDirectionFromRoute(stop1, stop2);
-    final direction2 =
-        await GoogleAPIService.getDirectionFromRoute(stop2, stop1);
+    try {
+      final direction1 =
+          await GoogleAPIService.getDirectionFromRoute(stop1, stop2);
+      final direction2 =
+          await GoogleAPIService.getDirectionFromRoute(stop2, stop1);
 
-    var changedStop1, changedStop2;
+      var changedStop1, changedStop2;
 
-    if (direction1 != null &&
-        !stop1.directionDestination.contains(direction1)) {
-      changedStop1 = await MBTAService.getAssociatedStop(stopId: stop1.id);
-    } else {
-      changedStop1 = stop1;
+      if (direction1 != null &&
+          !stop1.directionDestination.contains(direction1)) {
+        changedStop1 = await MBTAService.getAssociatedStop(stopId: stop1.id);
+      } else {
+        changedStop1 = stop1;
+      }
+
+      if (direction2 != null &&
+          !stop2.directionDestination.contains(direction2)) {
+        changedStop2 = await MBTAService.getAssociatedStop(stopId: stop2.id);
+      } else {
+        changedStop2 = stop2;
+      }
+
+      final newCommute =
+          Commute(changedStop1, changedStop2, arrivalTime, departureTime);
+
+      viewModel.saveCommute(newCommute);
+      setState(() {
+        isLoading = false;
+      });
+
+      Navigator.of(context).pop();
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+
+      showErrorDialog(context, saveCommuteError);
     }
-
-    if (direction2 != null &&
-        !stop2.directionDestination.contains(direction2)) {
-      changedStop2 = await MBTAService.getAssociatedStop(stopId: stop2.id);
-    } else {
-      changedStop2 = stop2;
-    }
-
-    final newCommute =
-        Commute(changedStop1, changedStop2, arrivalTime, departureTime);
-
-    viewModel.saveCommute(newCommute);
-
-    setState(() {
-      isLoading = false;
-    });
-
-    Navigator.of(context).pop();
   }
 
   @override
@@ -181,14 +179,14 @@ class _CreateCommuteScreenState extends State<CreateCommuteScreen> {
                             "Home",
                             "Tap to add home stop",
                             this.stop1,
-                            this.onSelectStop),
+                            this.handleChosenStop),
                         stopContainer(
                             context,
                             false,
                             "Work",
                             "Tap to add work stop",
                             this.stop2,
-                            this.onSelectStop),
+                            this.handleChosenStop),
                         timeSelectionRow(context, this.arrivalTime,
                             this.departureTime, pickTime),
                         isLoading
