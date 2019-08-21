@@ -235,7 +235,7 @@ SPEC CHECKSUMS:
   FirebaseCore: e38f025287b413255a53acc1945d048a112047f7
   FirebaseFirestore: 0537b2a960a4819fae2834e688e5daeb571c81d6
   FirebaseInstanceID: 0e0348a3c00a734fa376a070f5ad4533ad975cb5
-  Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_udid: e698e58df29cd728c7e3f061e13a8e0d93376f51
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   geolocator: 857074f794a14d158fc01b2b68caae9cb7beb72d

@@ -4,7 +4,7 @@ Widget errorTextWidget(BuildContext context, {String text}) {
   return Container(
     child: Center(
       child: Text(
-        text ?? "No stops found\nTry searching something else",
+        text ?? "Error loading data. Please try again.",
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.body2,
       ),

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:mbta_companion/src/screens/stateless_screens/about_screen.dart';
 import 'package:mbta_companion/src/screens/stateless_screens/map_image_screen.dart';

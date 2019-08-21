@@ -35,7 +35,7 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   TextEditingController searchBarController = TextEditingController();
-  List<Stop> filteredStops = [];
+  List<Stop> filteredStops;
 
   Widget getBodyWidget(_ExploreViewModel viewModel) {
     // error handling
@@ -56,17 +56,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
 
     // loading
-    if (viewModel.isAllStopsLoading || viewModel.isLocationLoading) {
+    if (filteredStops == null ||
+        viewModel.isAllStopsLoading ||
+        viewModel.isLocationLoading) {
       return StopsLoadingIndicator();
     }
 
-    if ((filteredStops == null || filteredStops.length == 0) &&
+    if (filteredStops != null &&
+        filteredStops.length == 0 &&
         viewModel.allStops.length != 0) {
-      this.filteredStops = viewModel.allStops;
-    }
-
-    if (filteredStops.length == 0) {
-      return errorTextWidget(context);
+      return errorTextWidget(context,
+          text:
+              "No stops found.\nTry searching something else."); // TODO: put in constants
     }
 
     return WillPopScope(
@@ -150,7 +151,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
         converter: (store) =>
             _ExploreViewModel.create(store, widget.consolidated),
         builder: (context, _ExploreViewModel viewModel) {
-          var bodyWidget = getBodyWidget(viewModel);
+          if (viewModel.allStops != null &&
+              viewModel.allStops.length != 0 &&
+              this.filteredStops == null) {
+            this.filteredStops = viewModel.allStops;
+          }
+
+          final bodyWidget = getBodyWidget(viewModel);
 
           if (viewModel.location == null &&
               !viewModel.isLocationLoading &&
