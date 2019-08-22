@@ -30,8 +30,7 @@ dependencies:
     package_info: 0.3.2+1
     webview_flutter: 0.2.0
     connectivity: 0.3.2
-    permission_handler: 2.2.0
-    geolocator: 4.0.3
+    # permission_handler: 2.1.0
     eventsource: 0.2.1
     shared_preferences: 0.5.2
     firebase_core: 0.4.0+8
