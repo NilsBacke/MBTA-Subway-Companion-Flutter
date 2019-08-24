@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:location/location.dart';
 import 'package:mbta_companion/src/models/commute.dart';
 import 'package:mbta_companion/src/models/stop.dart';
 import 'package:mbta_companion/src/screens/CommuteScreen/widgets/nearest_stop_card.dart';
-import 'package:mbta_companion/src/screens/CommuteScreen/widgets/three_part_card.dart';
+import 'package:mbta_companion/src/screens/CommuteScreen/widgets/four_part_card.dart';
 import 'package:mbta_companion/src/screens/CreateCommuteScreen/create_commute_screen.dart';
+import 'package:mbta_companion/src/services/permission_service.dart';
 import 'package:mbta_companion/src/state/operations/commuteOperations.dart';
 import 'package:mbta_companion/src/state/state.dart';
 import 'package:mbta_companion/src/utils/navigation_utils.dart';
 import 'package:mbta_companion/src/utils/show_error_dialog.dart';
 import 'package:mbta_companion/src/utils/timeofday_helper.dart';
 import 'package:mbta_companion/src/widgets/commute_time_circle_combo.dart';
+import 'package:mbta_companion/src/widgets/time_to_walk_text.dart';
 import 'package:redux/redux.dart';
 import '../../widgets/stop_details_tile.dart';
+import 'package:mbta_companion/src/state/operations/locationOperations.dart';
 
 class CommuteScreen extends StatefulWidget {
   @override
@@ -20,6 +24,21 @@ class CommuteScreen extends StatefulWidget {
 }
 
 class _CommuteScreenState extends State<CommuteScreen> {
+  void onInit(_CommuteViewModel viewModel) {
+    if (viewModel.location == null &&
+        !viewModel.isLocationLoading &&
+        viewModel.locationErrorStatus == null) {
+      viewModel.getLocation();
+    }
+
+    if (viewModel.commute == null &&
+        !viewModel.isCommuteLoading &&
+        viewModel.commuteErrorMessage.length == 0 &&
+        (viewModel.commuteExists == null || viewModel.commuteExists == true)) {
+      viewModel.getCommute();
+    }
+  }
+
   Future onRefresh() async {
     final viewModel = _CommuteViewModel.create(StoreProvider.of(context));
     viewModel.getCommute();
@@ -41,21 +60,15 @@ class _CommuteScreenState extends State<CommuteScreen> {
           children: <Widget>[
             NearestStopCard(),
             StoreConnector<AppState, _CommuteViewModel>(
+              onInit: (store) => this.onInit(_CommuteViewModel.create(store)),
               converter: (store) => _CommuteViewModel.create(store),
               builder: (context, _CommuteViewModel viewModel) {
-                if (viewModel.commute == null &&
-                    !viewModel.isCommuteLoading &&
-                    viewModel.commuteErrorMessage.length == 0 &&
-                    (viewModel.commuteExists == null ||
-                        viewModel.commuteExists == true)) {
-                  viewModel.getCommute();
-                }
-
                 if (viewModel.commuteErrorMessage.length != 0) {
                   Future.delayed(
-                      Duration.zero,
-                      () => showErrorDialog(
-                          context, viewModel.commuteErrorMessage));
+                    Duration.zero,
+                    () =>
+                        showErrorDialog(context, viewModel.commuteErrorMessage),
+                  );
                   return commuteCardWithText(viewModel.commuteErrorMessage);
                 }
 
@@ -84,7 +97,7 @@ class _CommuteScreenState extends State<CommuteScreen> {
       otherInfo.add(viewModel.commute.stop1.directionDescription);
     }
 
-    return ThreePartCard(
+    return FourPartCard(
       'Work Commute',
       GestureDetector(
         onTap: () {
@@ -138,6 +151,7 @@ class _CommuteScreenState extends State<CommuteScreen> {
           ),
         ),
       ),
+      timeToWalkText(context, viewModel.commute.stop1, viewModel.location),
       trailing: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
@@ -229,27 +243,38 @@ class _CommuteScreenState extends State<CommuteScreen> {
 }
 
 class _CommuteViewModel {
+  final LocationData location;
+  final bool isLocationLoading;
+  final LocationStatus locationErrorStatus;
   final Commute commute;
   final bool isCommuteLoading;
   final String commuteErrorMessage;
   final bool commuteExists;
 
+  final Function() getLocation;
   final Function() getCommute;
   final Function(Commute) saveCommute;
   final Function(Commute) deleteCommute;
 
   _CommuteViewModel(
-      {this.commute,
+      {this.location,
+      this.isLocationLoading,
+      this.locationErrorStatus,
+      this.commute,
       this.isCommuteLoading,
       this.commuteErrorMessage,
       this.commuteExists,
       this.getCommute,
       this.saveCommute,
-      this.deleteCommute});
+      this.deleteCommute,
+      this.getLocation});
 
   factory _CommuteViewModel.create(Store<AppState> store) {
     final state = store.state;
     return _CommuteViewModel(
+        location: state.locationState.locationData,
+        isLocationLoading: state.locationState.isLocationLoading,
+        locationErrorStatus: state.locationState.locationErrorStatus,
         commute: reverseCommuteIfNecessary(state.commuteState.commute),
         isCommuteLoading: state.commuteState.isCommuteLoading,
         commuteErrorMessage: state.commuteState.commuteErrorMessage,
@@ -258,7 +283,8 @@ class _CommuteViewModel {
         saveCommute: (Commute commute) =>
             store.dispatch(saveCommuteOp(commute)),
         deleteCommute: (Commute commute) =>
-            store.dispatch(deleteCommuteOp(commute)));
+            store.dispatch(deleteCommuteOp(commute)),
+        getLocation: () => store.dispatch(fetchLocation()));
   }
 }
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:location/location.dart';
 import 'package:mbta_companion/src/constants/string_constants.dart';
 import 'package:mbta_companion/src/models/stop.dart';
 import 'package:mbta_companion/src/services/config.dart';
@@ -12,6 +13,7 @@ class GoogleAPIService {
   static final awsAPIKey = AWS_API_KEY;
   static final directionRoute = "/stops/direction";
   static final distanceMatrixRoute = "/stops/timebetween";
+  static final timeToWalkRoute = "/stops/timebetweenwalk";
 
   // returns time in minutes
   static Future<int> getTimeBetweenStops(Stop stop1, Stop stop2) async {
@@ -30,6 +32,17 @@ class GoogleAPIService {
     }
 
     return int.parse(result.payload['minutes']);
+  }
+
+  static Future<String> getTimeToWalk(Stop stop, LocationData location) async {
+    final result = await makeRequest(Method.GET,
+        "$newAPIURL$timeToWalkRoute?stopName=${stop.name.replaceAll(" ", "%20")}&latitude=${location.latitude}&longitude=${location.longitude}",
+        headers: {"x-api-key": awsAPIKey});
+
+    if (result.payload != null && result.payload['minutes'] != null) {
+      return result.payload['minutes'];
+    }
+    return null;
   }
 
   static String getArrivalTime(DateTime time, int minutes) {

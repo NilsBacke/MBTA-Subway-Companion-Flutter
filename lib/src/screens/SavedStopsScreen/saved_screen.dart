@@ -17,6 +17,14 @@ class SavedScreen extends StatefulWidget {
 }
 
 class _SavedScreenState extends State<SavedScreen> {
+  void onInit(_SavedViewModel viewModel) {
+    if (viewModel.savedStops == null &&
+        !viewModel.isSavedStopsLoading &&
+        viewModel.savedStopsError.length == 0) {
+      viewModel.getSavedStops();
+    }
+  }
+
   Function(Stop) addStopFullFunction(Function(Stop) addStop) {
     return (Stop stop) {
       addStop(stop);
@@ -33,14 +41,9 @@ class _SavedScreenState extends State<SavedScreen> {
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, _SavedViewModel>(
+      onInit: (store) => this.onInit(_SavedViewModel.create(store)),
       converter: (store) => _SavedViewModel.create(store),
       builder: (context, _SavedViewModel viewModel) {
-        if (viewModel.savedStops == null &&
-            !viewModel.isSavedStopsLoading &&
-            viewModel.savedStopsError.length == 0) {
-          viewModel.getSavedStops();
-        }
-
         var bodyWidget;
         if (viewModel.isSavedStopsLoading) {
           bodyWidget = StopsLoadingIndicator();

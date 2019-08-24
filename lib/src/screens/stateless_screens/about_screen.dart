@@ -55,7 +55,7 @@ class AboutScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.body1,
           ),
           Text(
-            "Special thanks to the following libraries:\nflutter\ngoogle_maps_flutter\nlocation\nhttp\ngreat_circle_distance\nsqflite\npath\nurl_launcher\npath_provider\nrxdart\nflutter_datetime_picker\npackage_info\ncupertino_icons\nwebview_flutter\nconnectivity\npermission_handler\ngeolocator\neventsource\nshared_preferences\nfirebase_core\nfirebase_performance\nfirebase_analytics\nfirebase_crashlytics",
+            "Thank you to Caroline Thibault for all her app icon design and creative efforts. All credit for the app icon should go to her.\n\n\nSpecial thanks to the following libraries:\nflutter\ngoogle_maps_flutter\nlocation\nhttp\ngreat_circle_distance\nsqflite\npath\nurl_launcher\npath_provider\nrxdart\nflutter_datetime_picker\npackage_info\ncupertino_icons\nwebview_flutter\nconnectivity\npermission_handler\ngeolocator\neventsource\nshared_preferences\nfirebase_core\nflutter_udid\ncloud_firestore\nredux\nflutter_redux\nredux_thunk\nredux_logging\nshare\nsentry\nflutter_polyline_points\nflutter_icons",
             style: Theme.of(context).textTheme.body2,
           ),
         ],

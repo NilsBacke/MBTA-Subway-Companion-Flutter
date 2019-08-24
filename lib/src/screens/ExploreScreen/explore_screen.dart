@@ -37,6 +37,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
   TextEditingController searchBarController = TextEditingController();
   List<Stop> filteredStops;
 
+  void onInit(_ExploreViewModel viewModel) {
+    if (viewModel.location == null &&
+        !viewModel.isLocationLoading &&
+        viewModel.locationErrorStatus == null) {
+      viewModel.getLocation();
+    }
+
+    if (viewModel.allStops != null &&
+        viewModel.allStops.length == 0 &&
+        !viewModel.isAllStopsLoading &&
+        viewModel.allStopsErrorMessage.isEmpty &&
+        viewModel.location != null) {
+      viewModel.getAllStops(viewModel.location);
+    }
+  }
+
   Widget getBodyWidget(_ExploreViewModel viewModel) {
     // error handling
     if (viewModel.locationErrorStatus != null) {
@@ -148,6 +164,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: StoreConnector<AppState, _ExploreViewModel>(
+        onInit: (store) =>
+            this.onInit(_ExploreViewModel.create(store, widget.consolidated)),
         converter: (store) =>
             _ExploreViewModel.create(store, widget.consolidated),
         builder: (context, _ExploreViewModel viewModel) {
@@ -158,20 +176,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
           }
 
           final bodyWidget = getBodyWidget(viewModel);
-
-          if (viewModel.location == null &&
-              !viewModel.isLocationLoading &&
-              viewModel.locationErrorStatus == null) {
-            viewModel.getLocation();
-          }
-
-          if (viewModel.allStops != null &&
-              viewModel.allStops.length == 0 &&
-              !viewModel.isAllStopsLoading &&
-              viewModel.allStopsErrorMessage.isEmpty &&
-              viewModel.location != null) {
-            viewModel.getAllStops(viewModel.location);
-          }
 
           return Column(
             children: <Widget>[

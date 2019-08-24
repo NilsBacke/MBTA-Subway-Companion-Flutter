@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
-class ThreePartCard extends StatelessWidget {
+class FourPartCard extends StatelessWidget {
   final String cardTitleText;
   final Widget stopWidget1;
   final Widget stopWidget2;
   final Widget trailing;
+  final Widget bottomWidget;
 
-  const ThreePartCard(this.cardTitleText, this.stopWidget1, this.stopWidget2,
+  const FourPartCard(
+      this.cardTitleText, this.stopWidget1, this.stopWidget2, this.bottomWidget,
       {this.trailing});
 
   @override
@@ -32,6 +34,7 @@ class ThreePartCard extends StatelessWidget {
             stopWidget1,
             Divider(),
             stopWidget2,
+            bottomWidget
           ],
         ),
       ),

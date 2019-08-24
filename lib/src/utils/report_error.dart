@@ -1,3 +1,4 @@
+import 'package:mbta_companion/src/services/config.dart';
 import 'package:sentry/sentry.dart';
 
 final SentryClient _sentry = SentryClient(
@@ -8,6 +9,9 @@ Future<void> reportError(dynamic error, dynamic stackTrace) async {
   // Print the exception to the console.
   print('Caught error: $error');
   print(stackTrace);
+  if (FIREBASE_STAGE == "staging") {
+    return;
+  }
   try {
     _sentry.captureException(
       exception: error,

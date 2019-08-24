@@ -1,3 +1,11 @@
+# 1.1.2
+
+Added the time it will take to walk to stops on commute page
+Added refresh button to map on a stop's detail page
+Added loading indicator on map screens
+Updated acknowledgements
+Various performance improvements
+
 # 1.1.1
 
 Minor bug fixes and improvements
